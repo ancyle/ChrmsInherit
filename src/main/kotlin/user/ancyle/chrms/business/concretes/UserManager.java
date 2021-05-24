@@ -7,6 +7,7 @@ import user.ancyle.chrms.business.abstracts.UserService;
 import user.ancyle.chrms.business.constants.Messages;
 import user.ancyle.chrms.core.utilities.business.RuleVerifier;
 import user.ancyle.chrms.core.utilities.identifier.mernis.IKLKPSPublicSoap;
+import user.ancyle.chrms.core.utilities.mail.MailService;
 import user.ancyle.chrms.core.utilities.result.*;
 import user.ancyle.chrms.dataAccess.abstracts.JobSeekerRepo;
 import user.ancyle.chrms.dataAccess.abstracts.UserRepo;
@@ -22,13 +23,16 @@ public class UserManager implements UserService {
     private final UserRepo userRepo;
     private final JobSeekerRepo jobSeekerRepo;
     private final EmployerRepo employerRepo;
+    private final MailService mailService;
 
     //Constructor
     @Autowired
-    public UserManager(UserRepo userRepo,JobSeekerRepo jobSeekerRepo,EmployerRepo employerRepo) {
+    public UserManager(UserRepo userRepo,JobSeekerRepo jobSeekerRepo,
+                       MailService mailService,EmployerRepo employerRepo) {
         this.userRepo = userRepo;
         this.jobSeekerRepo=jobSeekerRepo;
         this.employerRepo=employerRepo;
+        this.mailService=mailService;
     }
 
     //Business
@@ -40,6 +44,10 @@ public class UserManager implements UserService {
                 (checkCorpMailValid(employer),checkPasswordsAreMatching(employer,password),
                         checkUserExistsByMail(employer));
         if(result!=null) return new ErrorResult(result.getMessage());
+        //Mail
+        var code=mailService.createCode();
+        this.mailService.sendMail(employer.getUserMail(),code);
+        employer.getUserConfirmation().setCode(code);
         this.userRepo.save(employer);
         return new SuccessResult(Messages.success);
     }
@@ -69,6 +77,13 @@ public class UserManager implements UserService {
         return new SuccessDataResult<>(this.employerRepo.findById(id).get(),Messages.success);
     }
 
+    @Override
+    public DataResult<JobSeeker> getJobSeekerByConfirmationCode(String code){
+        var result=this.jobSeekerRepo.findByUserConfirmation_Code(code);
+        if(!result.isPresent()) return new ErrorDataResult<>();
+        return new SuccessDataResult<JobSeeker>(result.get());
+    }
+
     //JobSeeker
     @Override
     public Result newJobSeeker(JobSeeker jobSeeker,String password) {
@@ -76,6 +91,10 @@ public class UserManager implements UserService {
                 (checkNationalIdentity(jobSeeker),checkPasswordsAreMatching(jobSeeker,password),
                         checkUserExistsByMail(jobSeeker),checkUserExistsByNationalId(jobSeeker));
         if(result!=null) return new ErrorResult(result.getMessage());
+        //Mail
+        var code=mailService.createCode();
+        this.mailService.sendMail(jobSeeker.getUserMail(),code);
+        jobSeeker.getUserConfirmation().setCode(code);
         this.userRepo.save(jobSeeker);
         return new SuccessResult(Messages.success);
     }
@@ -105,6 +124,13 @@ public class UserManager implements UserService {
         return new SuccessDataResult<>(this.jobSeekerRepo.findById(id).get(),Messages.success);
     }
 
+    @Override
+    public DataResult<Employer> getEmployerByConfirmationCode(String code){
+        var result=this.employerRepo.findByUserConfirmation_Code(code);
+        if(!result.isPresent()) return new ErrorDataResult<>();
+        return new SuccessDataResult<Employer>(result.get());
+    }
+
     //User
     @Override
     public Result newUser(User user,String password) {
@@ -119,6 +145,13 @@ public class UserManager implements UserService {
     @Override
     public DataResult<User> getUser(short id) {
         return new SuccessDataResult<>(this.userRepo.findById(id).get(), Messages.success);
+    }
+
+    @Override
+    public DataResult<User> getUserByActivationCode(String code) {
+        var result=this.userRepo.findUserByUserConfirmation_Code(code);
+        if(!result.isPresent()) return new ErrorDataResult<>("User or token invalid");
+        return new SuccessDataResult<>(result.get());
     }
 
     @Override

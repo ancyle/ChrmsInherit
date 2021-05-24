@@ -28,4 +28,7 @@ public class User {
     private LocalDate createdDate= LocalDate.now();
     @Column(name="is_active")
     private boolean isActive;
+
+    @OneToOne(cascade = CascadeType.ALL)
+    private UserConfirmation userConfirmation;
 }

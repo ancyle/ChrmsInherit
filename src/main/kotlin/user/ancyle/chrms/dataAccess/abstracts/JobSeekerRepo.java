@@ -8,4 +8,5 @@ import java.util.Optional;
 public interface JobSeekerRepo extends JpaRepository<JobSeeker,Short> {
     Optional<JobSeeker> findByNationalId(Long nationalId);
     Optional<JobSeeker> findByUserMail(String mail);
+    Optional<JobSeeker> findByUserConfirmation_Code(String code);
 }

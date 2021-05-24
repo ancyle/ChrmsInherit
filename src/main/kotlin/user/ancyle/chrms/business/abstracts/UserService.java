@@ -17,16 +17,19 @@ public interface UserService {
     public DataResult<List<User>> listAllUsers();
     public DataResult<User> getUserByMail(String mail);
     public DataResult<User> getUser(short id);
+    public DataResult<User> getUserByActivationCode(String code);
     // For Employer
     public Result newEmployer(Employer employer,String password);
     public Result updateEmployer(Employer employer,String password);
     public DataResult<List<Employer>> listAllEmployers();
     public DataResult<Employer> getEmployerByMail(String mail);
     public DataResult<Employer> getEmployer(short id);
+    public DataResult<Employer> getEmployerByConfirmationCode(String code);
     //For JobSeeker
     public Result newJobSeeker(JobSeeker jobSeeker,String password);
     public Result updateJobSeeker(JobSeeker jobSeeker,String password);
     public DataResult<List<JobSeeker>> listAllJobSeekers();
     public DataResult<JobSeeker> getJobSeekerByMail(String mail);
     public DataResult<JobSeeker> getJobSeeker(short id);
+    public DataResult<JobSeeker> getJobSeekerByConfirmationCode(String code);
 }

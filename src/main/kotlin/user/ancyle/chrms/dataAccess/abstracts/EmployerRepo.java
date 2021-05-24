@@ -7,4 +7,5 @@ import java.util.Optional;
 
 public interface EmployerRepo extends JpaRepository<Employer, Short> {
     Optional<Employer> findByUserMail(String mail);
+    Optional<Employer> findByUserConfirmation_Code(String code);
 }
